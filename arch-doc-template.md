@@ -6,55 +6,97 @@ This is a template created by Diego Pacheco which the goal to better describe a 
 
 ### 1. 🎯 Problem Statement and Context
 
-What is the problem? What is the context of the problem?
-Example:
-```
-The problem is to sell shoes online, the main issue with buying shoes online is 
-how we will make our users buy shoes if they cannot make them fit? We would need
-to have a huge selectio and find ways to people find they perpect show at the 
-same time market teams would need to change campains all the time, we need to
-have way to make things fast and dynamic.
-```
-Recomended Reading: http://diego-pacheco.blogspot.com/2021/10/breaking-problems-down.html
+**Mr. Bill wants a multi-tenant system where:**
+- Users can register their PoCs.
+- Users can search PoCs by name, programming language, and tags.
+- The system should allow report generation and the ability to generate a yearly video compilation of all PoCs.
+- The platform must support real-time dojos (collaborative learning sessions inside the app).
+- The app must be secure with proper login and tenant isolation.
+- The solution must be delivered as a mobile app (native, not Ionic).
+- The backend must run on AWS, not as a monolith, not with single AZ, and not serverless/Lambda.
+- The database cannot be MongoDB or a single relational DB.
+- It needs to be scalable, because it will be sold to many companies with multiple users.
+
+**Context**
+- **End users:** Developers.
+- **Market:** Brazilian tech companies (but should be designed with global expansion in mind).
+- **Business model:** SaaS (multi-tenant).
+
+**Non-functional requirements**
+- **Scalability:** support growth as adoption increases.
+- **Availability:** no single AZ, so multi-AZ at minimum.
+- **Security:** tenant isolation, secure authentication, encrypted storage.
+- **Performance:** fast search (tags, name, language).
+- **Extensibility:** future-proof for new features like AI-assisted recommendations.
 
 ### 2. 🎯 Goals
 
-List in form of bullets what goals do have. Here it's great to have 5-10 lines.
-Example:
-```
-1. Solution needs to be fast! Performance for all operations bellow ~1 ms.
-2. Security is non-negociable! Security at-rest, transite, threat analysis and review for by at least 3 different people.
-3. Composable solution. Users should be able to mix and match components instead of building all for scratch. ie: map component can be reused on counters component.
-4. Work offline: Re-consiliation, CRDTs are a must.
-5. Cloud-Native: All backend must be 100% cloud native, using open-source and should and should be cloud-agnostic, avoid propretaty apis.
-```
-Recommended Learning: http://diego-pacheco.blogspot.com/2020/05/education-vs-learning.html
+1. **Multi-tenancy:** The system must isolate data per tenant, ensuring no leakage between customers.
+2. **Secure access:** Strong authentication and authorization, encrypted storage, and data-in-transit encryption.
+3. **Native mobile experience:** Build the mobile app natively (Swift for iOS, Kotlin for Android).
+4. **PoC management:** Create, edit, delete, and search PoCs (by name, programming language, tags).
+5. **Search performance:** Search queries must return results in < 200ms for typical workloads.
+6. **Reporting:** Generate report dashboards with aggregated PoC information.
+7. **Video generation:** Ability to generate a yearly compilation video of all PoCs per user.
+8. **Real-time dojos:** Enable synchronous code writing, chat and voice call inside the platform.
+9. **Scalability & Availability:** Multi-AZ deployment on AWS, must scale horizontally.
+10. **Observability:** Logging, metrics, and tracing from day one.
 
 ### 3. 🎯 Non-Goals
 
-List in form of bullets what non-goals do have. Here it's great to have 5-10 lines.
-Example:
-```
-1. Be perfect: There will be mistakes, we dont want have automatic-rollback for everything.
-2. DynamoDB: Dynamo is expensive, we want be away from the DB.
-3. Serverless: Serverless has high latency, we do not want to use it.
-4. Mobile-native: We want have one single codebase, therefore we will not have 2 mobile code bases(ios and android) thefore be native is not a goal.
-5. ...
-```
-Recommended Reading: http://diego-pacheco.blogspot.com/2021/01/requirements-are-dangerous.html
+1. **On-premise deployments:** The system will only be SaaS, no support for local installs.
+2. **Cross-cloud support:** AWS is the mandatory cloud, no support for GCP or Azure.
+3. **Monolithic architecture:** The system will not be delivered as a monolith, we will design distributed services.
+4. **Serverless/Lambda-first approach:** Explicitly forbidden by restriction, we’ll use containers/ECS/EKS instead.
+5. **Single AZ setup:** Not acceptable, high availability is a must.
+6. **NoSQL MongoDB:** Excluded by restriction, we’ll use relational and specialized stores.
+7. **Single relational DB for everything:** We’ll separate concerns (e.g. PoCs in Postgres, search in Elasticsearch, media in S3).
+8. **Offline-first mobile support:** Not in scope for the MVP. Users must be online.
+9. **Third-party video editing features:** Beyond generating yearly compilations, full-fledged video editing is not a goal.
+10. **Enterprise-level AI recommendations:** AI-based features are nice-to-have, but not in MVP scope.
 
 ### 📐 3. Principles
 
-List in form of bullets what design principles you want to be followed, it's great to have 5-10 lines.
-Example:
-```
-1. Low Coupling: We need to watch for coupling all times.
-2. Flexibility: Users should be able to customize behavior without leaking the internals of the system. Leverage interfaces.
-3. Observability: we should expose all key metrics on main features. Sucess and errors counters need to be exposed.
-4. Testability: Chaos engineering is a must and property testing. Testing should be done by engineers all times.
-5. Cache efficiency: Should leverage SSD caches and all forms of caches as much as possible.
-```
-Recommended Reading: http://diego-pacheco.blogspot.com/2018/01/stability-principles.html
+1. **Separation of Concerns**
+    * Each service should handle a single bounded responsibility (e.g., PoC service, reporting service, video generation service).
+    * This avoids accidental coupling and simplifies scaling.
+
+2. **Multi-Tenancy by Design**
+    * Tenant data must be isolated logically at the database layer (e.g., tenant_id column and row-level security) and at the storage layer (e.g., per-tenant S3 folders).
+    * No shared queries without explicit tenant scoping.
+
+3. **Security First**
+    * Authentication via standards (OAuth2/OpenID Connect).
+    * Authorization with role and tenant-based access.
+    * Data encryption at rest (KMS, RDS encryption) and in transit (TLS 1.2+).
+
+4. **Cloud-Native and AWS-First**
+    * Use AWS managed services (RDS, ECS/EKS, S3, ElastiCache, OpenSearch) to reduce operational overhead.
+    * No monoliths, no single-AZ setups, no vendor lock-in beyond AWS basics.
+
+5. **Scalability via Horizontal Scaling**
+    * All services must be stateless and run in containers.
+    * Persistent state only in managed databases or object storage.
+
+6. **Observability Built-In**
+    * Collect metrics (Prometheus compatible), logs and distributed traces.
+    * Dashboards and alerts defined as code (Grafana/CloudWatch).
+
+7. **APIs as Contracts**
+    * Services communicate via well-defined APIs (REST/gRPC).
+    * Contracts must be versioned and backward-compatible where possible.
+
+8. **Event-Driven for Async Work**
+    * Use Kafka or AWS MSK for decoupling long-running jobs (e.g., video generation, reporting).
+    * Sync APIs only for quick user-facing operations.
+
+9. **Fail-Fast, Resilient by Default**
+    * Use retries, circuit breakers, bulkheads.
+    * Chaos testing baked into CI/CD pipelines.
+
+10. **Evolvability**
+    * Architecture must allow new services to be added without re-architecting.
+    * ADRs (Architecture Decision Records) should capture major decisions.
 
 ### 🏗️ 4. Overall Diagrams
 
