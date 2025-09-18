@@ -100,13 +100,18 @@ This is a template created by Diego Pacheco which the goal to better describe a 
 
 ### 🏗️ 4. Overall Diagrams
 
-Here there will be a bunch of diagrams, to understand the solution.
-```
-🗂️ 4.1 Overall architecture: Show the big picture, relationship between macro components.
-🗂️ 4.2 Deployment: Show the infra in a big picture. 
-🗂️ 4.3 Use Cases: Make 1 macro use case diagram that list the main capability that needs to be covered. 
-```
-Recommended Reading: http://diego-pacheco.blogspot.com/2020/10/uml-hidden-gems.html
+#### 4.1 - Overall Architecture Diagram
+
+![Overall Arch Diagram](images/overall/Overall%20architecture.png)
+
+#### 4.2 - Deployment Diagram
+
+![Deployment Diagram](images/deploy/Deploy%20Diagram.png)
+
+#### 4.3 - Use Cases Diagram
+
+![Use Case - POC Service](images/use_cases/Use%20Case%20-%20POC%20Service.png)
+![Use Case - Kata Service](images/use_cases/Use%20Case%20-%20Kata%20Service.png)
 
 ### 🧭 5. Trade-offs
 
