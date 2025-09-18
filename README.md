@@ -7,8 +7,4 @@
 - Source diagram file: [MrBillDiagram.drawio](./MrBillDiagram.drawio)
 
 ## Architecture Template
-
-Use the template below to document your architecture decisions and design details:
-
-- [Open the Architecture Template](./arch-doc-template.md)
-
+- View the template: [arch-doc-template.md](./arch-doc-template.md)
