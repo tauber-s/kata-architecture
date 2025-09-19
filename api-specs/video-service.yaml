@@ -1,0 +1,270 @@
+openapi: 3.0.3
+info:
+  title: Video Service API
+  description: Service to generate videos for users based on their activity.
+  version: 1.0.0
+
+servers:
+  - url: https://api.kata-platform.com/video/v1
+    description: Production server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /videos:
+    get:
+      summary: List user videos
+      description: Retrieve all videos for the authenticated user
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Number of results to skip for pagination
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Video'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /videos/generate:
+    post:
+      summary: Generate yearly video compilation
+      description: Start the process of generating a yearly compilation video for the user
+      responses:
+        '202':
+          description: Video generation started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Video'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Video already exists for this year
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /videos/{id}:
+    get:
+      summary: Get video by ID
+      description: Retrieve a specific video by its unique identifier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier of the video
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Video'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /videos/{id}/download:
+    get:
+      summary: Download video
+      description: Get a pre-signed URL to download the video file
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier of the video
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '302':
+          description: Redirect to S3 pre-signed URL
+          headers:
+            Location:
+              description: Pre-signed download URL
+              schema:
+                type: string
+                format: uri
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Video not ready for download
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token with tenant and user claims
+
+  schemas:
+    Video:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the video
+        user_id:
+          type: string
+          format: uuid
+          description: ID of the user who owns the video
+        title:
+          type: string
+          maxLength: 255
+          description: Title of the video
+        url:
+          type: string
+          nullable: true
+          description: S3 URL for the video file
+        created_at:
+          type: string
+          format: date-time
+          description: When the video generation was requested
+      required:
+        - id
+        - user_id
+        - title
+        - url
+        - created_at
+
+    Pagination:
+      type: object
+      properties:
+        limit:
+          type: integer
+          description: Number of items per page
+        offset:
+          type: integer
+          description: Number of items skipped
+        total:
+          type: integer
+          description: Total number of items available
+        has_more:
+          type: boolean
+          description: Whether there are more items available
+      required:
+        - limit
+        - offset
+        - total
+        - has_more
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Error code identifier
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error details
+        timestamp:
+          type: string
+          format: date-time
+          description: When the error occurred
+      required:
+        - code
+        - message
+        - timestamp
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Forbidden:
+      description: Access denied
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

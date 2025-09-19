@@ -1,0 +1,522 @@
+openapi: 3.0.3
+info:
+  title: Kata Service API
+  description: Service for managing collaborative coding sessions (dojos)
+  version: 1.0.0
+
+servers:
+  - url: https://api.kata-platform.com/kata/v1
+    description: Production server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /katas:
+    post:
+      summary: Create a new kata session
+      description: Start a new collaborative coding session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateKataRequest'
+      responses:
+        '201':
+          description: Kata created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Kata'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /katas/active:
+    get:
+      summary: List active katas
+      description: Retrieve all currently active kata sessions for the tenant
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Number of results to skip for pagination
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Kata'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /katas/{id}:
+    get:
+      summary: Get kata by ID
+      description: Retrieve a specific kata session by its unique identifier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier of the kata
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Kata'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /katas/{id}/end:
+    put:
+      summary: End a kata session
+      description: Mark a kata session as completed
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier of the kata
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Kata ended successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Kata'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Kata already ended
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /katas/{id}/rooms:
+    post:
+      summary: Create a new room in a kata
+      description: Create a new collaborative room within a kata session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier of the kata
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoomRequest'
+      responses:
+        '201':
+          description: Room created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /katas/{id}/rooms/{roomId}/join:
+    put:
+      summary: Join a kata room
+      description: Add a user to an existing kata room
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier of the kata
+          schema:
+            type: string
+            format: uuid
+        - name: roomId
+          in: path
+          required: true
+          description: Unique identifier of the room
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successfully joined room
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: User already in room or room is full
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /katas/{id}/rooms/{roomId}/leave:
+    put:
+      summary: Leave a kata room
+      description: Remove a user from a kata room
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier of the kata
+          schema:
+            type: string
+            format: uuid
+        - name: roomId
+          in: path
+          required: true
+          description: Unique identifier of the room
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successfully left room
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /katas/{id}/rooms/{roomId}/complete:
+    put:
+      summary: Mark room as completed
+      description: Mark a kata room as completed
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier of the kata
+          schema:
+            type: string
+            format: uuid
+        - name: roomId
+          in: path
+          required: true
+          description: Unique identifier of the room
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Room marked as completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Room already completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token with tenant and user claims
+
+  schemas:
+    Kata:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the kata
+        title:
+          type: string
+          maxLength: 255
+          description: Title of the kata session
+        status:
+          type: string
+          enum: [in_progress, completed, cancelled]
+          description: Current status of the kata
+        startedAt:
+          type: string
+          format: date-time
+          description: When the kata session started
+        endedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the kata session ended
+        createdBy:
+          type: string
+          format: uuid
+          description: ID of the user who created the kata
+        rooms:
+          type: array
+          items:
+            $ref: '#/components/schemas/Room'
+          description: List of rooms in this kata
+      required:
+        - id
+        - title
+        - description
+        - status
+        - startedAt
+        - createdBy
+        - rooms
+
+    Room:
+      type: object
+      properties:
+        room_id:
+          type: string
+          format: uuid
+          description: Unique identifier of the room
+        name:
+          type: string
+          maxLength: 255
+          description: Name of the room
+        status:
+          type: string
+          enum: [active, completed]
+          description: Current status of the room
+        sensei_id:
+          type: string
+          format: uuid
+          description: ID of the sensei (instructor) for this room
+        participants:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: List of participant user IDs
+        created_at:
+          type: string
+          format: date-time
+          description: When the room was created
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the room was completed
+      required:
+        - room_id
+        - name
+        - status
+        - sensei_id
+        - participants
+        - created_at
+
+    CreateKataRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Title of the kata session
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Description of the kata session
+      required:
+        - title
+        - description
+
+    CreateRoomRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Name of the room
+        sensei_id:
+          type: string
+          format: uuid
+          description: ID of the sensei (instructor) for this room
+        participants:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 0
+          maxItems: 9
+          description: Initial list of participant user IDs
+      required:
+        - name
+        - sensei_id
+
+    Pagination:
+      type: object
+      properties:
+        limit:
+          type: integer
+          description: Number of items per page
+        offset:
+          type: integer
+          description: Number of items skipped
+        total:
+          type: integer
+          description: Total number of items available
+        has_more:
+          type: boolean
+          description: Whether there are more items available
+      required:
+        - limit
+        - offset
+        - total
+        - has_more
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Error code identifier
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error details
+        timestamp:
+          type: string
+          format: date-time
+          description: When the error occurred
+      required:
+        - code
+        - message
+        - timestamp
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Forbidden:
+      description: Access denied
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
