@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" version="28.2.3">
   <diagram name="Page-1" id="Cu99sBXCVIxc1E4DCSHP">
-    <mxGraphModel dx="3420" dy="1455" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="3679" dy="2769" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -209,8 +209,8 @@
         <mxCell id="Lc69PInTfA7sejHYpEJL-88" value="&lt;b&gt;Deployment&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="Lc69PInTfA7sejHYpEJL-73">
           <mxGeometry x="9.552238805970148" width="57.3134328358209" height="27.272727272727273" as="geometry" />
         </mxCell>
-        <mxCell id="Lc69PInTfA7sejHYpEJL-89" value="&lt;div&gt;&lt;div&gt;&lt;b&gt;CAMADA DE AUTH (Cognito)&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;Cada user se cadastra via Cognito Hosted UI ou API&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;No momento do signup, o backend gera um tenant_id e armazena&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;Cognito retorna um JWT com claims tipo:&lt;/b&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;{&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;&amp;nbsp; &quot;sub&quot;: &quot;user-id&quot;,&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;&amp;nbsp; &quot;email&quot;: &quot;user@....&quot;,&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;&amp;nbsp; &quot;custom:tenant_id&quot;: &quot;uuid-do-tenant&quot;,&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;&amp;nbsp; &quot;role&quot;: &quot;admin&quot;&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;}&lt;/b&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;b&gt;CAMADA DE BACKEND (EKS)&lt;/b&gt;&lt;/div&gt;&lt;div&gt;cada serviço backend (rodando em um pod no EKS) - fluxo:&lt;/div&gt;&lt;div&gt;POR REQUEST&lt;/div&gt;&lt;div&gt;Recebe JWT&lt;/div&gt;&lt;div&gt;Valida assinatura e expiração&lt;/div&gt;&lt;div&gt;Extrai tenant_id e user_id do token&lt;/div&gt;&lt;div&gt;Faz: SET app.current_tenant = :tenant_id;&lt;/div&gt;&lt;div&gt;e ai todas as queries SQL sequentes são protegidas pelo RLS&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;o RLS garante que SE o backend tentar acessar dados de outro tenant, o banco bloqueia automaticamente&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;b&gt;CAMADA DE DADOS (Aurora PostgreSQL com RLS)&lt;/b&gt;&lt;/div&gt;&lt;div&gt;TODAS as tabelas sensiveis tem a coluna tenant_id&lt;/div&gt;&lt;div&gt;O DB so vai permiter acessar linhas onde:&lt;/div&gt;&lt;div&gt;tenant_id = current_setting(&#39;app.current_tenant&#39;)::uuid&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;regra eh &quot;imposta pelo banco&quot; (RLS)... nao pelo codigo&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;FLUXO DE NOVO TENANT&lt;/div&gt;&lt;div&gt;1. Cadastro via /signup&lt;/div&gt;&lt;div&gt;Usuário envia nome, email, empresa&lt;/div&gt;&lt;div&gt;Backend:&lt;/div&gt;&lt;div&gt;Cria novo tenant_id&lt;/div&gt;&lt;div&gt;Salva user no Cognito com esse tenant_id no atributo&lt;/div&gt;&lt;div&gt;Salva no banco (tabela tenants, users)&lt;/div&gt;&lt;div&gt;Retorna token com claims corretas&lt;/div&gt;&lt;div&gt;2. Uso da plataforma&lt;/div&gt;&lt;div&gt;JWT enviado nas chamadas&lt;/div&gt;&lt;div&gt;Backend injeta tenant no contexto SQL&lt;/div&gt;&lt;div&gt;Queries filtradas por RLS&lt;/div&gt;&lt;div&gt;notas:&lt;/div&gt;&lt;div&gt;Toda a segurança de acesso aos dados é baseada em:&lt;/div&gt;&lt;div&gt;Tokens JWT assinados com tenant_id no Cognito&lt;/div&gt;&lt;div&gt;Validação obrigatoria do token em cada requisição&lt;/div&gt;&lt;div&gt;Isolamento de dados com Row-Level Security no PostgreSQL&lt;/div&gt;&lt;div&gt;A aplicação é stateless, escalável e segura por design&lt;/div&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;align=left;" vertex="1" parent="1">
-          <mxGeometry x="-730" y="40" width="510" height="950" as="geometry" />
+        <mxCell id="Lc69PInTfA7sejHYpEJL-89" value="&lt;div&gt;&lt;div&gt;&lt;b&gt;CAMADA DE AUTH (Cognito)&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;Cada user se cadastra via Cognito Hosted UI ou API&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;No momento do signup, o backend gera um tenant_id e armazena&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;Cognito retorna um JWT com claims tipo:&lt;/b&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;{&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;&amp;nbsp; &quot;sub&quot;: &quot;user-id&quot;,&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;&amp;nbsp; &quot;email&quot;: &quot;user@....&quot;,&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;&amp;nbsp; &quot;custom:tenant_id&quot;: &quot;uuid-do-tenant&quot;,&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;&amp;nbsp; &quot;role&quot;: &quot;admin&quot;&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;}&lt;/b&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;b&gt;CAMADA DE BACKEND (EKS)&lt;/b&gt;&lt;/div&gt;&lt;div&gt;cada serviço backend (rodando em um pod no EKS) - fluxo:&lt;/div&gt;&lt;div&gt;POR REQUEST&lt;/div&gt;&lt;div&gt;Recebe JWT&lt;/div&gt;&lt;div&gt;Valida assinatura e expiração&lt;/div&gt;&lt;div&gt;Extrai tenant_id e user_id do token&lt;/div&gt;&lt;div&gt;Faz: SET app.current_tenant = :tenant_id;&lt;/div&gt;&lt;div&gt;e ai todas as queries SQL sequentes são protegidas pelo RLS&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;o RLS garante que SE o backend tentar acessar dados de outro tenant, o banco bloqueia automaticamente&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;b&gt;CAMADA DE DADOS (Aurora PostgreSQL com RLS)&lt;/b&gt;&lt;/div&gt;&lt;div&gt;TODAS as tabelas sensiveis tem a coluna tenant_id&lt;/div&gt;&lt;div&gt;O DB so vai permiter acessar linhas onde:&lt;/div&gt;&lt;div&gt;tenant_id = current_setting(&#39;app.current_tenant&#39;)::uuid&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;regra eh &quot;imposta pelo banco&quot; (RLS)... nao pelo codigo&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;b&gt;FLUXO DE NOVO TENANT&lt;/b&gt;&lt;/div&gt;&lt;div&gt;1. Cadastro via /signup&lt;/div&gt;&lt;div&gt;Usuário envia nome, email, empresa&lt;/div&gt;&lt;div&gt;Backend:&lt;/div&gt;&lt;div&gt;Cria novo tenant_id&lt;/div&gt;&lt;div&gt;Salva user no Cognito com esse tenant_id no atributo&lt;/div&gt;&lt;div&gt;Salva no banco (tabela tenants, users)&lt;/div&gt;&lt;div&gt;Retorna token com claims corretas&lt;/div&gt;&lt;div&gt;2. Uso da plataforma&lt;/div&gt;&lt;div&gt;JWT enviado nas chamadas&lt;/div&gt;&lt;div&gt;Backend injeta tenant no contexto SQL&lt;/div&gt;&lt;div&gt;Queries filtradas por RLS&lt;/div&gt;&lt;div&gt;notas:&lt;/div&gt;&lt;div&gt;T&lt;b&gt;oda a segurança de acesso aos dados é baseada em:&lt;/b&gt;&lt;/div&gt;&lt;div&gt;Tokens JWT assinados com tenant_id no Cognito&lt;/div&gt;&lt;div&gt;Validação obrigatoria do token em cada requisição&lt;/div&gt;&lt;div&gt;Isolamento de dados com Row-Level Security no PostgreSQL&lt;/div&gt;&lt;div&gt;A aplicação é stateless, escalável e segura por design&lt;/div&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;align=left;" vertex="1" parent="1">
+          <mxGeometry x="-440" y="20" width="510" height="950" as="geometry" />
         </mxCell>
         <mxCell id="Lc69PInTfA7sejHYpEJL-29" value="CDN" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws3.cloudfront;fillColor=#F58536;gradientColor=none;fontStyle=1;labelPosition=center;" vertex="1" parent="1">
           <mxGeometry x="661.96" y="201.75" width="47.5" height="56.5" as="geometry" />
@@ -318,7 +318,7 @@
           <mxGeometry x="176.25" y="190" width="61" height="70" as="geometry" />
         </mxCell>
         <mxCell id="Lc69PInTfA7sejHYpEJL-159" value="" style="group;fillColor=default;" vertex="1" connectable="0" parent="1">
-          <mxGeometry x="1437" y="818" width="410" height="139.39999999999998" as="geometry" />
+          <mxGeometry x="1467" y="720" width="410" height="139.39999999999998" as="geometry" />
         </mxCell>
         <mxCell id="Lc69PInTfA7sejHYpEJL-160" value="&lt;b&gt;POD EC2 instance contents&lt;/b&gt;" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=0;container=0;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_ec2_instance_contents;strokeColor=#D86613;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#D86613;dashed=0;" vertex="1" parent="Lc69PInTfA7sejHYpEJL-159">
           <mxGeometry width="410" height="139.4" as="geometry" />
@@ -348,7 +348,7 @@
           <mxGeometry x="340" y="-17" width="34.3" height="34.3" as="geometry" />
         </mxCell>
         <mxCell id="Lc69PInTfA7sejHYpEJL-169" value="" style="group" vertex="1" connectable="0" parent="1">
-          <mxGeometry x="1350" y="1020" width="546.96" height="290" as="geometry" />
+          <mxGeometry x="1380" y="922" width="546.96" height="290" as="geometry" />
         </mxCell>
         <mxCell id="Lc69PInTfA7sejHYpEJL-170" value="&lt;b&gt;Data stores&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;align=left;verticalAlign=top;" vertex="1" parent="Lc69PInTfA7sejHYpEJL-169">
           <mxGeometry x="13.48" width="520" height="290" as="geometry" />
@@ -386,32 +386,32 @@
         <mxCell id="Lc69PInTfA7sejHYpEJL-183" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="Lc69PInTfA7sejHYpEJL-166" target="Lc69PInTfA7sejHYpEJL-178">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1694" y="990" />
-              <mxPoint x="1503" y="990" />
+              <mxPoint x="1724" y="892" />
+              <mxPoint x="1533" y="892" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="Lc69PInTfA7sejHYpEJL-184" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Lc69PInTfA7sejHYpEJL-166" target="Lc69PInTfA7sejHYpEJL-171">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1694" y="990" />
-              <mxPoint x="1585" y="990" />
+              <mxPoint x="1724" y="892" />
+              <mxPoint x="1615" y="892" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="Lc69PInTfA7sejHYpEJL-185" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Lc69PInTfA7sejHYpEJL-167" target="Lc69PInTfA7sejHYpEJL-171">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1780" y="990" />
-              <mxPoint x="1585" y="990" />
+              <mxPoint x="1810" y="892" />
+              <mxPoint x="1615" y="892" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="Lc69PInTfA7sejHYpEJL-186" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="Lc69PInTfA7sejHYpEJL-167" target="Lc69PInTfA7sejHYpEJL-172">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1780" y="990" />
-              <mxPoint x="1670" y="990" />
+              <mxPoint x="1810" y="892" />
+              <mxPoint x="1700" y="892" />
             </Array>
           </mxGeometry>
         </mxCell>
@@ -421,16 +421,16 @@
         <mxCell id="Lc69PInTfA7sejHYpEJL-189" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="Lc69PInTfA7sejHYpEJL-167" target="Lc69PInTfA7sejHYpEJL-173">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1780" y="990" />
-              <mxPoint x="1752" y="990" />
+              <mxPoint x="1810" y="892" />
+              <mxPoint x="1782" y="892" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="Lc69PInTfA7sejHYpEJL-190" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="Lc69PInTfA7sejHYpEJL-167" target="Lc69PInTfA7sejHYpEJL-172">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1780" y="990" />
-              <mxPoint x="1670" y="990" />
+              <mxPoint x="1810" y="892" />
+              <mxPoint x="1700" y="892" />
             </Array>
           </mxGeometry>
         </mxCell>
@@ -448,6 +448,23 @@
         </mxCell>
         <mxCell id="Lc69PInTfA7sejHYpEJL-137" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.446;entryY=-0.003;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="Lc69PInTfA7sejHYpEJL-191" source="Lc69PInTfA7sejHYpEJL-136" target="Lc69PInTfA7sejHYpEJL-131">
           <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Lc69PInTfA7sejHYpEJL-192" value="Client TradeOffs&lt;div&gt;&lt;b style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;WEB (NEXTJS FEBE)&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Pros:&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;ul&gt;&lt;li style=&quot;text-align: left;&quot;&gt;SSR/SSG (server side rendering / generating)&lt;/li&gt;&lt;li style=&quot;text-align: left;&quot;&gt;Client side does not know API&lt;/li&gt;&lt;li style=&quot;text-align: left;&quot;&gt;Cache&lt;br&gt;&lt;/li&gt;&lt;li style=&quot;text-align: left;&quot;&gt;Components&lt;/li&gt;&lt;/ul&gt;&lt;div&gt;&lt;b&gt;Cons&lt;/b&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;ul&gt;&lt;li style=&quot;text-align: left;&quot;&gt;Monolith Risk&lt;/li&gt;&lt;li style=&quot;text-align: left;&quot;&gt;Cache complexity&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="848" y="-340" width="403" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="Lc69PInTfA7sejHYpEJL-193" value="Client TradeOffs&lt;div&gt;&lt;b&gt;Android and IOS&amp;nbsp;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;Pros:&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;ul&gt;&lt;li style=&quot;text-align: left;&quot;&gt;Better performance&lt;/li&gt;&lt;li style=&quot;text-align: left;&quot;&gt;Better access to native features&lt;/li&gt;&lt;/ul&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;Cons&lt;/b&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;ul&gt;&lt;li style=&quot;text-align: left;&quot;&gt;Duplicated development&lt;/li&gt;&lt;li style=&quot;text-align: left;&quot;&gt;Maintenance cost&lt;/li&gt;&lt;li style=&quot;text-align: left;&quot;&gt;Risk of inconsistency between versions&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="511" y="-340" width="297" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="Lc69PInTfA7sejHYpEJL-194" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="Lc69PInTfA7sejHYpEJL-63" target="Lc69PInTfA7sejHYpEJL-35">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Lc69PInTfA7sejHYpEJL-195" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="Lc69PInTfA7sejHYpEJL-51" target="Lc69PInTfA7sejHYpEJL-63">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1100" y="1040" />
+              <mxPoint x="605" y="1040" />
+            </Array>
+          </mxGeometry>
         </mxCell>
       </root>
     </mxGraphModel>
