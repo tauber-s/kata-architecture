@@ -140,6 +140,20 @@ CONS (+)
 PS: Be careful to not confuse problem with explanation. 
 <BR/>Recommended reading: http://diego-pacheco.blogspot.com/2023/07/tradeoffs.html
 
+
+Major Decisions:
+1. Backend primary language: Kotlin + Spring Boot 3 (JDK 25) for core microservices.
+
+Tradeoffs:
+1. Kotlin/Spring Boot vs Go 
+PROS (+)
+  * Maturity & ecosystem: Spring Boot provides integrations with AWS, PostgreSQL, Redis, OpenSearch, and Kafka (MSK), accelerating delivery.
+  * Robust typing & productivity: Kotlin adds concision, null-safety, and coroutines; Spring WebFlux supports reactive I/O for high-throughput REST/WebSocket endpoints.
+  * Operational readiness: First-class observability (Micrometer/OpenTelemetry) and security (Spring Security + Cognito/OIDC).
+CONS (-)
+  * Runtime footprint: JVM baseline memory/CPU is higher than Go or Rust, increasing container cost for small instances.
+  * Startup and image size: Slower startup and larger images vs Go; impacts scale-to-zero and ultra-fast rollouts.
+
 ### 🌏 6. For each key major component
 
 #### 6.1 - Class Diagram
@@ -317,8 +331,69 @@ Explain the techniques, principles,types of observability that will be used, key
 For each different kind of data store i.e (Postgres, Memcached, Elasticache, S3, Neo4J etc...) describe the schemas, what would be stored there and why, main queries, expectations on performance. Diagrams are welcome but you really need some dictionaries.
 
 ### 🖹 11. Technology Stack
+#### **1. General Architecture**
 
-Describe your stack, what databases would be used, what servers, what kind of components, mobile/ui approach, general architecture components, frameworks and libs to be used or not be used and why.
+- **Architecture Style:** services-based architecture with REST APIs.
+- **Deployment:** Containerized services orchestrated with Kubernetes
+- **Scalability:** Stateless services with horizontal scaling, load balancing, and auto-scaling policies.
+- **Security:**
+	- **Authentication & Authorization:** Managed by **Amazon Cognito**, supporting OAuth 2.0, OpenID Connect, and JWT-based authentication.
+	- **Transport Security:** All communication between services and clients is encrypted with **TLS/SSL**.
+	- **Centralized Security Controls:** Fine-grained access control policies and Cognito user pools/federation for secure identity management.
+	- **Observability:** Centralized logging, monitoring, and alerting to detect anomalies and potential security threats in real time.
+
+- **Networking & Entry Points:**
+	- **Amazon Route 53:** DNS management for custom domains with health checks and failover support.
+	- **AWS Application Load Balancer (ALB):** Distributes traffic across microservices, terminates SSL, and integrates with WAF and Cognito.
+	- **AWS WAF (Web Application Firewall):** Protects APIs from common web exploits (SQL injection, XSS, bots, DDoS).
+    
+
+---
+
+#### **2. Backend**
+
+- **Primary Language/Framework:**
+	- Kotlin (JDK 25 LTS) + Spring Boot 3.x (WebFlux, Spring Security, Data/JPA, OpenAPI) for core microservices.
+- **Databases:**
+    
+    - **Relational Database:** PostgreSQL (primary OLTP database, ACID-compliant, strong support for JSON fields).
+    - **Caching:** Redis (in-memory cache, session store, rate limiting).
+    - **Search:** OpenSearch.
+        
+- **Message Broker:**
+	- TODO: vamos ter message broker?
+
+- **API Layer:**
+    - REST (JSON-based)
+
+---
+
+#### **3. Frontend & UI**
+
+- **Web:**
+    - **Framework:** 
+    - **State Management:**
+    - **UI Library:**
+    - **SSR/SSG (optional):**
+        
+- **Mobile:**
+	- **Approach:** **Fully native implementations** to maximize performance, take advantage of platform-specific capabilities, and provide the best user experience.
+	- **iOS:** Swift / SwiftUI.
+	- **Android:** Kotlin / Jetpack Compose.
+	- **Why Native:** Better performance, tighter integration with device hardware (camera, sensors, push notifications), and ability to adopt new platform features more quickly compared to hybrid solutions.
+        
+
+---
+
+#### **4. DevOps & Infrastructure**
+
+- **Hosting / Cloud:**
+    - AWS — using managed services (RDS for PostgreSQL, Elasticache for Redis, etc.). 
+- **Containerization:** Docker for consistent environments across development, staging, production.
+- **CI/CD:**
+- **Monitoring & Logging:** 
+    - Prometheus + Grafana for metrics.
+
 
 ### 🖹 12. References
 
