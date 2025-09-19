@@ -140,6 +140,20 @@ CONS (+)
 PS: Be careful to not confuse problem with explanation. 
 <BR/>Recommended reading: http://diego-pacheco.blogspot.com/2023/07/tradeoffs.html
 
+
+Major Decisions:
+1. Backend primary language: Kotlin + Spring Boot 3 (JDK 25) for core microservices.
+
+Tradeoffs:
+1. Kotlin/Spring Boot vs Go 
+PROS (+)
+  * Maturity & ecosystem: Spring Boot provides integrations with AWS, PostgreSQL, Redis, OpenSearch, and Kafka (MSK), accelerating delivery.
+  * Robust typing & productivity: Kotlin adds concision, null-safety, and coroutines; Spring WebFlux supports reactive I/O for high-throughput REST/WebSocket endpoints.
+  * Operational readiness: First-class observability (Micrometer/OpenTelemetry) and security (Spring Security + Cognito/OIDC).
+CONS (-)
+  * Runtime footprint: JVM baseline memory/CPU is higher than Go or Rust, increasing container cost for small instances.
+  * Startup and image size: Slower startup and larger images vs Go; impacts scale-to-zero and ultra-fast rollouts.
+
 ### 🌏 6. For each key major component
 
 What is a majore component? A service, a lambda, a important ui, a generalized approach for all uis, a generazid approach for computing a workload, etc...
@@ -193,7 +207,7 @@ For each different kind of data store i.e (Postgres, Memcached, Elasticache, S3,
 #### **2. Backend**
 
 - **Primary Language/Framework:**
-	- TODO: add languages
+	- Kotlin (JDK 25 LTS) + Spring Boot 3.x (WebFlux, Spring Security, Data/JPA, OpenAPI) for core microservices.
 - **Databases:**
     
     - **Relational Database:** PostgreSQL (primary OLTP database, ACID-compliant, strong support for JSON fields).
