@@ -1,0 +1,410 @@
+openapi: 3.0.3
+info:
+  title: PoC Service API
+  description: Service for managing PoCs
+  version: 1.0.0
+
+servers:
+  - url: https://api.kata-platform.com/poc/v1
+    description: Production server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /pocs:
+    get:
+      summary: Filter and search PoCs
+      description: Search PoCs by keywords, programming language, and tags with pagination
+      parameters:
+        - name: q
+          in: query
+          description: Search keyword for title or description
+          schema:
+            type: string
+            maxLength: 255
+        - name: language
+          in: query
+          description: Filter by programming language
+          schema:
+            type: string
+            enum: [java, python, javascript, typescript, go, rust, cpp, csharp, kotlin, swift]
+        - name: tags
+          in: query
+          description: Comma-separated list of tags
+          schema:
+            type: string
+            example: "ml,infrastructure"
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Number of results to skip for pagination
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PoC'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      summary: Create a new PoC
+      description: Create a new Proof of Concept for the authenticated user's tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePoCRequest'
+      responses:
+        '201':
+          description: PoC created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoC'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /pocs/{id}:
+    get:
+      summary: Get PoC by ID
+      description: Retrieve a specific PoC by its unique identifier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier of the PoC
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoC'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      summary: Update a PoC
+      description: Update an existing PoC by its unique identifier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier of the PoC
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePoCRequest'
+      responses:
+        '200':
+          description: PoC updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoC'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      summary: Delete a PoC
+      description: Delete an existing PoC by its unique identifier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier of the PoC
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: PoC deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token with tenant and user claims
+
+  schemas:
+    PoC:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the PoC
+        title:
+          type: string
+          maxLength: 255
+          description: Title of the PoC
+        description:
+          type: string
+          maxLength: 2000
+          description: Detailed description of the PoC
+        repo_url:
+          type: string
+          format: uri
+          description: Repository URL for the PoC code
+        languages:
+          type: array
+          items:
+            type: string
+            enum: [java, python, javascript, typescript, go, rust, cpp, csharp, kotlin, swift]
+          description: Programming languages used in the PoC
+        tags:
+          type: array
+          items:
+            type: string
+            maxLength: 50
+          description: Tags for categorizing the PoC
+        created_by:
+          type: string
+          format: uuid
+          description: ID of the user who created the PoC
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the PoC was created
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the PoC was last updated
+      required:
+        - id
+        - title
+        - description
+        - languages
+        - tags
+        - created_by
+        - created_at
+        - updated_at
+
+    CreatePoCRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Title of the PoC
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Detailed description of the PoC
+        repo_url:
+          type: string
+          format: uri
+          description: Repository URL for the PoC code
+        languages:
+          type: array
+          items:
+            type: string
+            enum: [java, python, javascript, typescript, go, rust, cpp, csharp, kotlin, swift]
+          minItems: 1
+          description: Programming languages used in the PoC
+        tags:
+          type: array
+          items:
+            type: string
+            maxLength: 50
+          minItems: 1
+          description: Tags for categorizing the PoC
+      required:
+        - title
+        - description
+        - languages
+        - tags
+
+    UpdatePoCRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Title of the PoC
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Detailed description of the PoC
+        repo_url:
+          type: string
+          format: uri
+          description: Repository URL for the PoC code
+        languages:
+          type: array
+          items:
+            type: string
+            enum: [java, python, javascript, typescript, go, rust, cpp, csharp, kotlin, swift]
+          minItems: 1
+          description: Programming languages used in the PoC
+        tags:
+          type: array
+          items:
+            type: string
+            maxLength: 50
+          minItems: 1
+          description: Tags for categorizing the PoC
+      required:
+        - title
+        - description
+        - languages
+        - tags
+
+    Pagination:
+      type: object
+      properties:
+        limit:
+          type: integer
+          description: Number of items per page
+        offset:
+          type: integer
+          description: Number of items skipped
+        total:
+          type: integer
+          description: Total number of items available
+        has_more:
+          type: boolean
+          description: Whether there are more items available
+      required:
+        - limit
+        - offset
+        - total
+        - has_more
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Error code identifier
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error details
+        timestamp:
+          type: string
+          format: date-time
+          description: When the error occurred
+      required:
+        - code
+        - message
+        - timestamp
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Forbidden:
+      description: Access denied
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

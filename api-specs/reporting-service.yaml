@@ -1,0 +1,157 @@
+openapi: 3.0.3
+info:
+  title: Reporting Service API
+  description: Service for generating reports for users based on their activity.
+  version: 1.0.0
+
+servers:
+  - url: https://api.kata-platform.com/reports/v1
+    description: Production server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /reports/usage:
+    get:
+      summary: Get usage report
+      description: Generate usage analytics for a specific time period
+      parameters:
+        - name: from
+          in: query
+          required: true
+          description: Start date for the report (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+            example: "2025-09-01"
+        - name: to
+          in: query
+          required: true
+          description: End date for the report (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+            example: "2025-09-19"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsageReport'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          description: Invalid date range
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token with tenant and user claims
+
+  schemas:
+    UsageReport:
+      type: object
+      properties:
+        period:
+          type: object
+          properties:
+            from:
+              type: string
+              format: date
+            to:
+              type: string
+              format: date
+          required:
+            - from
+            - to
+        metrics:
+          type: object
+          properties:
+            pocs_created:
+              type: integer
+              description: Number of PoCs created in the period
+          required:
+            - pocs_created
+      required:
+        - period
+        - metrics
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Error code identifier
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error details
+        timestamp:
+          type: string
+          format: date-time
+          description: When the error occurred
+      required:
+        - code
+        - message
+        - timestamp
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Forbidden:
+      description: Access denied
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

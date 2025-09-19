@@ -142,17 +142,163 @@ PS: Be careful to not confuse problem with explanation.
 
 ### 🌏 6. For each key major component
 
-What is a majore component? A service, a lambda, a important ui, a generalized approach for all uis, a generazid approach for computing a workload, etc...
-```
-6.1 - Class Diagram              : classic uml diagram with attributes and methods
-6.2 - Contract Documentation     : Operations, Inputs and Outputs
-6.3 - Persistence Model          : Diagrams, Table structure, partiotioning, main queries.
-6.4 - Algorithms/Data Structures : Spesific algos that need to be used, along size with spesific data structures.
-```
+#### 6.1 - Class Diagram
 
-Exemplos of other components: Batch jobs, Events, 3rd Party Integrations, Streaming, ML Models, ChatBots, etc... 
+![Class Diagram - Kata Service](images/classes/Class%20Diagram.png)
 
-Recommended Reading: http://diego-pacheco.blogspot.com/2018/05/internal-system-design-forgotten.html
+#### 6.2 - Contract Documentation
+
+**API Specifications:**
+- [PoC Service API](api-specs/poc-service.yaml) - PoC management operations
+- [Kata Service API](api-specs/kata-service.yaml) - Collaborative coding sessions  
+- [Reporting Service API](api-specs/reporting-service.yaml) - Analytics and reporting
+- [Video Service API](api-specs/video-service.yaml) - Video compilation generation
+
+##### Key Service Endpoints Summary
+
+**PoC Service** (`/poc/v1`) - [Full API Spec](api-specs/poc-service.yaml):
+- `POST /pocs` - Create PoC
+- `GET /pocs` - Filter PoCs (supports search by keyword, language, tags)
+- `GET /pocs/{id}` - Get PoC by ID
+- `PUT /pocs/{id}` - Update PoC
+- `DELETE /pocs/{id}` - Delete PoC
+
+**Kata Service** (`/kata/v1`) - [Full API Spec](api-specs/kata-service.yaml):
+- `POST /katas` - Create kata session
+- `GET /katas/active` - List active katas
+- `POST /katas/{id}/rooms` - Create room
+- `PUT /katas/{id}/rooms/{roomId}/join` - Join room
+- `PUT /katas/{id}/rooms/{roomId}/leave` - Leave room
+- `PUT /katas/{id}/rooms/{roomId}/complete` - Complete room
+- `PUT /katas/{id}/end` - End kata session
+
+**Reporting Service** (`/reports/v1`) - [Full API Spec](api-specs/reporting-service.yaml):
+- `GET /reports/usage` - Usage analytics with date range
+- `GET /reports/poc-summary/{pocId}` - PoC summary report
+- `GET /reports/kata-analytics` - Kata session analytics
+- `GET /reports/tenant-overview` - Comprehensive tenant metrics
+- `POST /reports/export` - Export reports (PDF, CSV, XLSX, JSON)
+
+**Video Service** (`/video/v1`) - [Full API Spec](api-specs/video-service.yaml):
+- `POST /videos/generate` - Generate yearly compilation
+- `GET /videos` - List user videos
+- `GET /videos/{id}` - Get video details
+- `GET /videos/{id}/download` - Download video (pre-signed S3 URL)
+- `GET /videos/{id}/thumbnail` - Get video thumbnail
+- `DELETE /videos/{id}` - Delete video
+
+## Video Service
+
+1. Generate Yearly Video
+    ```http
+    POST /videos/generate/
+    Request: {}
+    Response:
+    {
+      "id": "uuid",
+      "user_id": "uuid",
+      "status": "processing|ready|unavailable",
+      "url": "string|null"
+    }
+    ```
+
+2. List User Videos
+    ```http
+    GET /videos/
+    Response:
+    {
+      "id": "uuid",
+      "user_id": "uuid",
+      "year": 2025,
+      "url": "string",
+      "created_at": "..."
+    }
+    ```
+
+3. Download Video
+    ```http
+    GET /videos/{id}/download
+    Response: 302 Redirect to S3 pre-signed URL
+    ```
+
+#### 6.3 - Persistence Model
+
+#### 6.3.1 - Tables Diagram
+
+![Use Case - Kata Service](images/tables/Tables%20Diagram.png)
+
+##### 6.3.2 - Main queries
+1. Users by cognito_sub
+   ```sql
+   SELECT * FROM users WHERE tenant_id = :tenant_id AND cognito_sub = ?;
+   ```
+
+2. PoCs by filter
+   ```sql
+   SELECT *
+   FROM pocs
+   WHERE tenant_id = :tenant_id
+   AND (:q IS NULL OR lower(title) LIKE '%'||lower(:q)||'%')
+   AND (:language IS NULL OR :language = ANY(languages))
+   AND (:tags IS NULL OR tags && :tags_array)
+   ORDER BY created_at DESC
+   LIMIT :limit OFFSET :offset;
+   ```
+
+3. Active Katas
+   ```sql
+   SELECT * FROM kata_runs
+   WHERE tenant_id = :tenant_id
+   AND status = 'in_progress'
+   ORDER BY started_at DESC;
+   ```
+4. List Videos
+   ```sql
+   SELECT *
+   FROM videos
+   WHERE user_id = :user_id
+   AND tenant_id = :tenant_id
+   ORDER BY created_at DESC;
+   ```
+
+##### 6.3.3 - Partitioning Strategy
+
+**Partitioning**
+
+We considered three partitioning options for our multi-tenant database:
+
+- **Option A – Partition by `tenant_id`:**  
+  Best when we have a small number of tenants, each with large datasets. Provides strong tenant isolation.
+
+- **Option B – Partition by time (`created_at` / `started_at`):**  
+  Useful for time-based queries (recent PoCs, videos, katas).
+
+- **Option C – Hybrid (partition by `tenant_id`, sub-partition by time):**  
+  Good for many tenants each with large amounts of data. Combines isolation with time-based pruning.
+
+**Decision:**
+- At first, we will partition by `tenant_id` if we have a small number of tenants with high data volume.
+- If the number of tenants grows too much, we will revert to single schema + `tenant_id` column with indexes.
+- If we observe very large datasets per tenant, we adopt hybrid partitioning (`tenant_id` + `time`).
+
+---
+
+**Indexing**
+
+To ensure efficient queries under our multi-tenant design, we will use the following composite indexes:
+
+- **Users**
+   - `(tenant_id, cognito_sub)` for fast lookup of users by Cognito identity.
+
+- **PoCs**
+   - `(tenant_id, created_at DESC)` for listing/filtering.
+   - Index on `tags` and `languages` arrays for fast multi-value search.
+
+- **Katas**
+   - `(tenant_id, status, started_at DESC)` for querying active katas.
+
+- **Videos**
+   - `(tenant_id, user_id, created_at DESC)` for retrieving videos per user.
 
 ### 🖹 7. Migrations
 
