@@ -405,14 +405,14 @@ Alerts are always tested in staging before being promoted to production.
 
 ### 🖹 10. Data Store Designs
 
-##### 10.1 Aurora (PostgreSQL)
+#### 10.1 Aurora (PostgreSQL)
 
 **Purpose:**
 Stores all transactional data (users, PoCs, katas, reports, metadata for videos).
 
 **Schemas and Tables:**
 
-###### `users`
+##### `users`
 
 | Column      | Type      | Definition        |
 |-------------|-----------|-------------------|
@@ -423,7 +423,7 @@ Stores all transactional data (users, PoCs, katas, reports, metadata for videos)
 | created\_at | TIMESTAMP | Registration date |
 | tenant\_id  | UUID      | Related Tenant    |
 
-###### `pocs`
+##### `pocs`
 
 | Column      | Type      | Definition          |
 |-------------|-----------|---------------------|
@@ -437,7 +437,7 @@ Stores all transactional data (users, PoCs, katas, reports, metadata for videos)
 | created\_at | TIMESTAMP | Creation date       |
 | tenant\_id  | UUID      | Related Tenant      |
 
-###### `katas`
+##### `katas`
 
 | Column      | Type      | Definition                                    |
 |-------------|-----------|-----------------------------------------------|
@@ -448,7 +448,7 @@ Stores all transactional data (users, PoCs, katas, reports, metadata for videos)
 | status      | TEXT      | (`scheduled`, `active`, `failed`, `finished`) |
 | tenant\_id  | UUID      | Related Tenant                                |
 
-###### `rooms`
+##### `rooms`
 
 | Column     | Type      | Definition                       |
 |------------|-----------|----------------------------------|
@@ -459,7 +459,7 @@ Stores all transactional data (users, PoCs, katas, reports, metadata for videos)
 | sensei_id  | UUID (FK) | User assigned as sensei          |
 | tenant\_id | UUID      | Related Tenant                   |
 
-###### `room_participants`
+##### `room_participants`
 
 | Column     | Type      | Definition                       |
 |------------|-----------|----------------------------------|
@@ -469,7 +469,7 @@ Stores all transactional data (users, PoCs, katas, reports, metadata for videos)
 | left\_at   | TIMESTAMP | When participant left the room   |
 | tenant\_id | UUID      | Related Tenant                   |
 
-###### `videos`
+##### `videos`
 
 | Column      | Type      | Definition                                   |
 |-------------|-----------|----------------------------------------------|
@@ -489,7 +489,7 @@ Stores all transactional data (users, PoCs, katas, reports, metadata for videos)
 
 ---
 
-##### 10.2 OpenSearch
+#### 10.2 OpenSearch
 
 **Purpose:**
 Full-text search for PoCs and kata descriptions.
@@ -516,7 +516,7 @@ Full-text search for PoCs and kata descriptions.
 
 ---
 
-##### 10.3 S3 storage
+#### 10.3 S3 storage
 
 **Purpose:**
 Storage for generated yearly videos.
@@ -531,7 +531,7 @@ Storage for generated yearly videos.
 
 * Acceptable download latency by S3.
 
-##### 10.4 Redis
+#### 10.4 Redis
 
 **Purpose:**
 
