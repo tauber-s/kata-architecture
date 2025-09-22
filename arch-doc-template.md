@@ -116,7 +116,9 @@ The problem is to track and monitor the pocs, the main issue of having too many 
 
 ### 🧭 5. Trade-offs
 
-1. Kotlin/Spring Boot vs Go
+1. Backend
+
+1.1. Kotlin/Spring Boot vs Go
 ```   
 PROS (+)
   * Maturity & ecosystem: Spring Boot provides integrations with AWS, PostgreSQL, Redis, OpenSearch, and Kafka (MSK), accelerating delivery.
@@ -125,6 +127,21 @@ PROS (+)
 CONS (-)
   * Runtime footprint: JVM baseline memory/CPU is higher than Go or Rust, increasing container cost for small instances.
   * Startup and image size: Slower startup and larger images vs Go; impacts scale-to-zero and ultra-fast rollouts.
+```
+
+1.2. EKS (Kubernetes) vs ECS
+```
+PROS (+)
+  * Isolamento de tenants real**: Namespaces + RBAC permitem separar tenants com controle de acesso granular - essencial para multi-tenancy seguro.  
+  * Observabilidade com sidecars**: Suporte nativo a sidecars permite usar OpenTelemetry Collector, X-Ray, Prometheus - impossível em ECS Fargate.  
+  * Workloads variados**: Suporte a Deployments, Jobs, CronJobs - ideal para APIs, geração de vídeos, relatórios e sessões em tempo real.  
+  * Ecossistema CNCF completo**: Integração com Helm, ArgoCD, service mesh, Ingress Controllers, Network Policies - alta extensibilidade.  
+  * Padrão de mercado**: Kubernetes é portável, com maior disponibilidade de ferramentas, suporte e profissionais qualificados.  
+CONS (-)
+  * Sem namespaces ou RBAC**: Dificulta isolamento de tenants e gestão segura de acessos.  
+  * Sem suporte a sidecars**: Não é possível instrumentar observabilidade moderna (tracing distribuído, métrica customizada).  
+  * Pouco flexível para workloads assíncronos**: ECS não suporta Jobs, CronJobs ou custom workloads.  
+  * Lock-in com AWS**: Impossível portar a aplicação para outra nuvem sem reescrever o pipeline e a infraestrutura.  
 ```
 2. Client side
 Android and IOS </br>
