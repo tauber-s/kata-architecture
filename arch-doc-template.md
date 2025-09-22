@@ -146,74 +146,77 @@ CONS (-)
   * Pouco flexível para workloads assíncronos**: ECS não suporta Jobs, CronJobs ou custom workloads.  
   * Lock-in com AWS**: Impossível portar a aplicação para outra nuvem sem reescrever o pipeline e a infraestrutura.  
 ```
-2. Client side
-Android and IOS </br>
 
-Pros (+)
+2. Client side
+
+2.1. Android and IOS </br>
+```
+PROS (+)
   * Better performance
   * Better access to native features
 
-Cons (-)
+CONS (-)
   * Duplicated development
   * Maintenance cost
   * Risk of inconsistency between versions
+```
 
-WEB (NEXTJS FEBE)
+2.2. WEB (NEXTJS FEBE)
+```
+PROS (+)
+  * SSR/SSG (server side rendering / generating)
+  * Client side does not know API
+  * Cache
+  * React Components
+CONS (-)
+  * Monolith Risk
+  * Cache complexity
+```
 
-Pros (+)
-* SSR/SSG (server side rendering / generating)
-* Client side does not know API
-* Cache
-* React Components
-
-Cons (-)
-* Monolith Risk
-* Cache complexity
-
-3. Amazon Aurora PostgreSQL
-
-**Definition:**
-Amazon Aurora is a cloud-native relational database engine compatible with MySQL and PostgreSQL. It's designed for the cloud and provides the performance and availability of enterprise-grade databases with the simplicity and cost-effectiveness of open-source databases.
-
+3. Database
+   
+3.1. Amazon Aurora PostgreSQL vs MySQL
+```
 **Aurora PostgreSQL**
-
 Pros (+)
-* **High Performance**: Up to 3x faster than standard PostgreSQL
-* **Auto-scaling**: Storage scales automatically up to 128TB
-* **Multi-AZ**: Built-in replication across 3 availability zones
-* **Backup & Recovery**: Continuous backups to S3, point-in-time recovery
-* **RLS (Row Level Security)**: Granular security for multi-tenancy
-* **Security**: Encryption at rest/transit, IAM integration
-* **Global Database**: Cross-region replication with <1s latency
+  * **High Performance**: Up to 3x faster than standard PostgreSQL
+  * **Auto-scaling**: Storage scales automatically up to 128TB
+  * **Multi-AZ**: Built-in replication across 3 availability zones
+  * **Backup & Recovery**: Continuous backups to S3, point-in-time recovery
+  * **RLS (Row Level Security)**: Granular security for multi-tenancy
+  * **Security**: Encryption at rest/transit, IAM integration
+  * **Global Database**: Cross-region replication with <1s latency
 
 Cons (-)
-* **Vendor Lock-in**: AWS-specific, complex migration path
-* **Cost**: More expensive than standard RDS PostgreSQL
-* **Limited Extensions**: Not all PostgreSQL extensions supported
-* **Complexity**: Requires AWS-specific optimization knowledge
+  * **Vendor Lock-in**: AWS-specific, complex migration path
+  * **Cost**: More expensive than standard RDS PostgreSQL
+  * **Limited Extensions**: Not all PostgreSQL extensions supported
+  * **Complexity**: Requires AWS-specific optimization knowledge
 
 **MySQL**
 
-Pros (+)
-* **Performance**: Excellent for read-heavy operations, especially with MyISAM
-* **Simplicity**: Easy installation, configuration, and administration
-* **Speed**: Fast startup and low overhead
-* **Replication**: Mature and reliable replication system
-* **Community**: Large community with extensive documentation
-* **Compatibility**: Wide support across languages and frameworks
-* **Cost**: Free (Community edition) with low TCO
-* **Clustering**: MySQL Cluster for high availability
-* **Memory Efficiency**: Lower memory usage compared to PostgreSQL
+PROS (+)
+  * **Performance**: Excellent for read-heavy operations, especially with MyISAM
+  * **Simplicity**: Easy installation, configuration, and administration
+  * **Speed**: Fast startup and low overhead
+  * **Replication**: Mature and reliable replication system
+  * **Community**: Large community with extensive documentation
+  * **Compatibility**: Wide support across languages and frameworks
+  * **Cost**: Free (Community edition) with low TCO
+  * **Clustering**: MySQL Cluster for high availability
+  * **Memory Efficiency**: Lower memory usage compared to PostgreSQL
 
-Cons (-)
-* **SQL Compliance**: Less strict with SQL standards
-* **Limited Features**: Fewer advanced features (no window functions until 8.0)
-* **Data Types**: Limited support for complex data types
-* **Transactions**: MyISAM doesn't support transactions (InnoDB only)
-* **Extensibility**: Less extensible than PostgreSQL
-* **JSON Support**: Native JSON only from version 5.7+
-* **Concurrency**: Less sophisticated MVCC than PostgreSQL
-* **Licensing**: Commercial license needed for some use cases
+CONS (-)
+  * **SQL Compliance**: Less strict with SQL standards
+  * **Limited Features**: Fewer advanced features (no window functions until 8.0)
+  * **Data Types**: Limited support for complex data types
+  * **Transactions**: MyISAM doesn't support transactions (InnoDB only)
+  * **Extensibility**: Less extensible than PostgreSQL
+  * **JSON Support**: Native JSON only from version 5.7+
+  * **Concurrency**: Less sophisticated MVCC than PostgreSQL
+  * **Licensing**: Commercial license needed for some use cases
+```
+
 
 ### 🌏 6. For each key major component
 
