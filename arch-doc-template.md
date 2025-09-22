@@ -1,7 +1,3 @@
-# 🧬 Template
-
-This is a template created by Diego Pacheco which the goal to better describe a tought process which is called architecture. This should be used to learn software architecture and to pratice with use cases.
-
 ## 🏛️ Structure
 
 ### 1. 🎯 Problem Statement and Context
