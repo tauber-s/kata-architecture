@@ -10,7 +10,7 @@ reports and videos for all users with the system usage on the last year. The sys
 must be able to store pocs from multiple users from different countries and it must be fast and dynamic.
 ```
 
-**Mr. Bill wants a multi-tenant system where:**
+**List of features:**
 - Users can register their PoCs.
 - Users can search PoCs by name, programming language, and tags.
 - The system should allow report generation and the ability to generate a yearly video compilation of all PoCs.
