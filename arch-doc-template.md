@@ -201,40 +201,6 @@ CONS (-)
 - `GET /videos/{id}/thumbnail` - Get video thumbnail
 - `DELETE /videos/{id}` - Delete video
 
-## Video Service
-
-1. Generate Yearly Video
-    ```http
-    POST /videos/generate/
-    Request: {}
-    Response:
-    {
-      "id": "uuid",
-      "user_id": "uuid",
-      "status": "processing|ready|unavailable",
-      "url": "string|null"
-    }
-    ```
-
-2. List User Videos
-    ```http
-    GET /videos/
-    Response:
-    {
-      "id": "uuid",
-      "user_id": "uuid",
-      "year": 2025,
-      "url": "string",
-      "created_at": "..."
-    }
-    ```
-
-3. Download Video
-    ```http
-    GET /videos/{id}/download
-    Response: 302 Redirect to S3 pre-signed URL
-    ```
-
 #### 6.3 - Persistence Model
 
 #### 6.3.1 - Tables Diagram
@@ -316,7 +282,7 @@ To ensure efficient queries under our multi-tenant design, we will use the follo
 
 ### 🖹 7. Migrations
 
-IF Migrations are required describe the migrations strategy with proper diagrams, text and tradeoffs.
+No migrations, since this is a brand-new system.
 
 ### 🖹 8. Testing strategy
 
@@ -328,7 +294,155 @@ Explain the techniques, principles,types of observability that will be used, key
 
 ### 🖹 10. Data Store Designs
 
-For each different kind of data store i.e (Postgres, Memcached, Elasticache, S3, Neo4J etc...) describe the schemas, what would be stored there and why, main queries, expectations on performance. Diagrams are welcome but you really need some dictionaries.
+##### 10.1 Aurora (PostgreSQL)
+
+**Purpose:**
+Stores all transactional data (users, PoCs, katas, reports, metadata for videos).
+
+**Schemas and Tables:**
+
+###### `users`
+
+| Column      | Type      | Definition        |
+|-------------|-----------|-------------------|
+| id          | UUID (PK) | Unique user ID    |
+| cognito_sub | UUID (PK) | Cognito user ID   |
+| name        | TEXT      | Display name      |
+| email       | TEXT      | Unique, indexed   |
+| created\_at | TIMESTAMP | Registration date |
+| tenant\_id  | UUID      | Related Tenant    |
+
+###### `pocs`
+
+| Column      | Type      | Definition          |
+|-------------|-----------|---------------------|
+| id          | UUID (PK) | Unique PoC ID       |
+| user\_id    | UUID (FK) | Owner               |
+| title       | TEXT      | Title of the PoC    |
+| description | TEXT      | Long description    |
+| repo_url    | TEXT      | Git repository      |
+| tags        | TEXT\[]   | Tags for the PoC    |
+| languages   | TEXT\[]   | Code languages used |
+| created\_at | TIMESTAMP | Creation date       |
+| tenant\_id  | UUID      | Related Tenant      |
+
+###### `katas`
+
+| Column      | Type      | Definition                                    |
+|-------------|-----------|-----------------------------------------------|
+| id          | UUID (PK) | Kata instance                                 |
+| user\_id    | UUID (FK) | Creator                                       |
+| started\_at | TIMESTAMP | When kata started                             |
+| ended\_at   | TIMESTAMP | When kata ended                               |
+| status      | TEXT      | (`scheduled`, `active`, `failed`, `finished`) |
+| tenant\_id  | UUID      | Related Tenant                                |
+
+###### `rooms`
+
+| Column     | Type      | Definition                       |
+|------------|-----------|----------------------------------|
+| id         | UUID (PK) | Room ID                          |
+| kata\_id   | UUID (FK) | Related kata                     |
+| name       | TEXT      | Info about challenge             |
+| status     | TEXT      | (`active`, `failed`, `finished`) |
+| sensei_id  | UUID (FK) | User assigned as sensei          |
+| tenant\_id | UUID      | Related Tenant                   |
+
+###### `room_participants`
+
+| Column     | Type      | Definition                       |
+|------------|-----------|----------------------------------|
+| room\_id   | UUID (PK) | Room ID                          |
+| user\_id   | UUID (FK) | Participant ID                   |
+| joined\_at | TIMESTAMP | When participant joined the room |
+| left\_at   | TIMESTAMP | When participant left the room   |
+| tenant\_id | UUID      | Related Tenant                   |
+
+###### `videos`
+
+| Column      | Type      | Definition                                   |
+|-------------|-----------|----------------------------------------------|
+| id          | UUID (PK) | Video ID                                     |
+| user\_id    | UUID (FK) | Owner                                        |
+| year        | INT       | Year of generation                           |
+| status      | TEXT      | (`pending`, `processing`, `ready`, `failed`) |
+| s3\_path    | TEXT      | Pointer to S3 object                         |
+| created\_at | TIMESTAMP | Request time                                 |
+| tenant\_id  | UUID      | Related Tenant                               |
+
+**Performance Expectations:**
+
+* PoCs search optimized with indexes on tags/languages.
+* Katas and rooms expected to be small (<10k rows/day).
+* Reports handled by window functions + indexes.
+
+---
+
+##### 10.2 OpenSearch
+
+**Purpose:**
+Full-text search for PoCs and kata descriptions.
+
+**Indices:**
+
+* `pocs_index`
+
+    * `id` (keyword)
+    * `title` (text, analyzed)
+    * `description` (text, analyzed)
+    * `tags` (keyword array)
+    * `languages` (keyword array)
+
+**Main Queries:**
+
+* `match` on description/title.
+* `filter` by tags and languages.
+
+**Performance Expectations:**
+
+* < 1s response time for queries on < 1M PoCs.
+* Updated asynchronously from Postgres via change feed.
+
+---
+
+##### 10.3 S3 storage
+
+**Purpose:**
+Storage for generated yearly videos.
+
+**Buckets & Objects:**
+
+* `{tenantId}/videos/{userId}/{year}/{videoId}.mp4`
+
+**Metadata stored in Postgres `videos` table.**
+
+**Performance Expectations:**
+
+* Acceptable download latency by S3.
+
+##### 10.4 Redis
+
+**Purpose:**
+
+* Caching hot queries.
+* Kata rooms ephemeral states (fast join/leave tracking).
+
+**Data Structures:**
+
+`room:{roomId}:participants`: Set of userIds
+- Add user when they join
+- Remove when they leave
+- Fast membership check
+
+`room:{roomId}:roles`: Hash
+- Controls who is pilot and copilot.
+- `pilot`: userId
+- `copilot`: userId
+
+**Performance Expectations:**
+
+* O(1) joins/leaves.
+* Expire room keys after kata ends.
 
 ### 🖹 11. Technology Stack
 #### **1. General Architecture**
