@@ -284,7 +284,124 @@ Explain the techniques, principles, types of tests and will be performaned, and 
 
 ### 🖹 9. Observability strategy
 
-Explain the techniques, principles,types of observability that will be used, key metrics, what would be logged and how to design proper dashboards and alerts.
+The observability strategy for the platform is designed to ensure **end-to-end visibility**, **early failure detection**, and **continuous security monitoring**.
+
+#### 9.1 Techniques and Principles
+
+We follow the principle of **Observability by Design**, with automatic collection of:
+
+- **Metrics** (CloudWatch and Prometheus-compatible exporters): covering both infrastructure and application-level KPIs.
+- **Structured logs**: including `tenant_id`, `user_id`, `request_id`, and `service`.
+- **Distributed tracing**: enabled by AWS X-Ray across all microservices.
+- **Threat detection**: using AWS GuardDuty and continuous audit logs via CloudTrail.
+- **Dashboards and alerts as code**: managed via CloudFormation or CDK and version-controlled.
+
+#### 9.2 Types of Observability
+
+| Type           | Tools / Focus                                      |
+|----------------|----------------------------------------------------|
+| **Metrics**    | CloudWatch + Prometheus (Kubernetes, App metrics)  |
+| **Logs**       | CloudWatch Logs + OpenSearch                       |
+| **Tracing**    | AWS X-Ray (end-to-end distributed tracing)         |
+| **Audit**      | AWS CloudTrail                                     |
+| **Security**   | AWS GuardDuty                                      |
+
+#### 9.3 Key Metrics
+
+We track both **infrastructure performance** and **application behavior**.
+
+##### Infrastructure (via CloudWatch):
+
+- CPU and memory usage per pod (via Container Insights)
+- Network traffic per service
+- Pod restarts and health checks
+- Redis (ElastiCache) latency, throughput, command rate
+
+##### Application:
+
+- Request latency and error rate per endpoint
+- PoC creation and Kata session throughput
+- Active dojo sessions (count, average duration)
+- Active users per tenant
+- Report generation performance
+
+##### Security:
+
+- Failed login attempts per IP
+- Suspicious behavior and access patterns (GuardDuty)
+- Audit trail for sensitive operations (CloudTrail)
+
+#### 9.4 Logging Strategy
+
+All services log in **structured JSON format**, with the following standard fields:
+
+```json
+{
+  "timestamp": "2025-09-21T12:00:00Z",
+  "level": "INFO",
+  "tenant_id": "abc-123",
+  "user_id": "user-456",
+  "request_id": "req-789",
+  "service": "kata-service",
+  "message": "User joined kata room",
+  "status_code": 200
+}
+```
+Logs are sent to **CloudWatch Logs**.
+
+Critical logs are mirrored to **Amazon OpenSearch** for advanced search and dashboarding.
+
+---
+
+#### 9.5 Tracing (AWS X-Ray)
+
+Distributed tracing is enabled across all service-to-service communication and asynchronous flows.
+
+- `request_id` and `trace_id` are propagated by default.
+- Enables identification of bottlenecks, slow API calls, and high-latency services.
+
+---
+
+#### 9.6 Dashboard Design
+
+Dashboards are implemented in **CloudWatch Dashboards** (optionally **Grafana** via OpenSearch), and include:
+
+- **Platform overview**: total requests, average latency, error rate
+- **Tenant dashboards**: per-tenant usage, active users, ongoing sessions
+- **Service-level dashboards**: custom metrics per microservice
+- **Real-time monitoring**: active dojo sessions, rooms, participants
+- **Video processing**: job statuses (pending, processing, failed, completed)
+
+All dashboards are defined as code and version-controlled through the CI/CD pipeline.
+
+---
+
+#### 9.7 Alerting Strategy
+
+All critical alarms are defined using **CloudWatch Alarms** and delivered via **SNS** (email, Slack, etc.).
+
+Alerts are based on **SLO-driven thresholds**, such as:
+
+- HTTP error rate > 5% over 5 minutes
+- API latency > 2 seconds on key endpoints
+- Multiple failed login attempts within a short window
+- Video generation job failures
+- Spike in pod restarts in the EKS cluster
+
+Alerts are always tested in staging before being promoted to production.
+
+---
+
+#### Observability Stack
+
+| Tool           | Role                                             |
+|----------------|--------------------------------------------------|
+| **CloudWatch** | Metrics, logs, dashboards, alarms                |
+| **AWS X-Ray**  | Distributed tracing across microservices         |
+| **GuardDuty**  | Real-time threat detection                       |
+| **CloudTrail** | Security auditing and AWS API usage tracking     |
+| **OpenSearch** | Log indexing, advanced search, custom dashboards |
+
 
 ### 🖹 10. Data Store Designs
 
