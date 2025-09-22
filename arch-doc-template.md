@@ -1,7 +1,3 @@
-# 🧬 Template
-
-This is a template created by Diego Pacheco which the goal to better describe a tought process which is called architecture. This should be used to learn software architecture and to pratice with use cases.
-
 ## 🏛️ Structure
 
 ### 1. 🎯 Problem Statement and Context
@@ -140,12 +136,8 @@ CONS (+)
 PS: Be careful to not confuse problem with explanation. 
 <BR/>Recommended reading: http://diego-pacheco.blogspot.com/2023/07/tradeoffs.html
 
-
-Major Decisions:
-1. Backend primary language: Kotlin + Spring Boot 3 (JDK 25) for core microservices.
-
-Tradeoffs:
-1. Kotlin/Spring Boot vs Go 
+1. Kotlin/Spring Boot vs Go
+```   
 PROS (+)
   * Maturity & ecosystem: Spring Boot provides integrations with AWS, PostgreSQL, Redis, OpenSearch, and Kafka (MSK), accelerating delivery.
   * Robust typing & productivity: Kotlin adds concision, null-safety, and coroutines; Spring WebFlux supports reactive I/O for high-throughput REST/WebSocket endpoints.
@@ -153,6 +145,7 @@ PROS (+)
 CONS (-)
   * Runtime footprint: JVM baseline memory/CPU is higher than Go or Rust, increasing container cost for small instances.
   * Startup and image size: Slower startup and larger images vs Go; impacts scale-to-zero and ultra-fast rollouts.
+```
 
 ### 🌏 6. For each key major component
 
