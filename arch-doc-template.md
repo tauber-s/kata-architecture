@@ -146,6 +146,15 @@ CONS (-)
   * Runtime footprint: JVM baseline memory/CPU is higher than Go or Rust, increasing container cost for small instances.
   * Startup and image size: Slower startup and larger images vs Go; impacts scale-to-zero and ultra-fast rollouts.
 ```
+2. Client side Android / IOS 
+Pros (+)
+
+Cons (-)
+
+3. Android / IOS 
+Pros (+)
+
+Cons (-)
 
 ### 🌏 6. For each key major component
 
