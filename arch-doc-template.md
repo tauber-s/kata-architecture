@@ -34,7 +34,11 @@ must be able to store pocs from multiple users from different countries and it m
 - **Extensibility:** future-proof for new features like AI-assisted recommendations.
 
 ### 2. 🎯 Goals
-
+```
+- Frontend: Native iOS (Swift 6.2) and Android (Kotlin 2.2) apps, and Next.js 15 for the back-office.
+- Database: PostgreSQL 17.
+- Infrastructure: Entirely cloud-native, leveraging AWS services.
+```
 1. **Multi-tenancy:** The system must isolate data per tenant, ensuring no leakage between customers.
 2. **Secure access:** Strong authentication and authorization, encrypted storage, and data-in-transit encryption.
 3. **Native mobile experience:** Build the mobile app natively (Swift for iOS, Kotlin for Android).
@@ -47,7 +51,17 @@ must be able to store pocs from multiple users from different countries and it m
 10. **Observability:** Logging, metrics, and tracing from day one.
 
 ### 3. 🎯 Non-Goals
-
+```
+- Lambda 
+- Monoliths
+- Single AZ solutions
+- Mobile: Ionic
+- Single language for mobile
+- it needs to be "native"
+- MongoDB
+- Single relational DB
+- Other clouds that are not AWS
+```
 1. **On-premise deployments:** The system will only be SaaS, no support for local installs.
 2. **Cross-cloud support:** AWS is the mandatory cloud, no support for GCP or Azure.
 3. **Monolithic architecture:** The system will not be delivered as a monolith, we will design distributed services.
