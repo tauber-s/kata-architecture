@@ -188,18 +188,12 @@ CONS (-)
 
 **Reporting Service** (`/reports/v1`) - [Full API Spec](api-specs/reporting-service.yaml):
 - `GET /reports/usage` - Usage analytics with date range
-- `GET /reports/poc-summary/{pocId}` - PoC summary report
-- `GET /reports/kata-analytics` - Kata session analytics
-- `GET /reports/tenant-overview` - Comprehensive tenant metrics
-- `POST /reports/export` - Export reports (PDF, CSV, XLSX, JSON)
 
 **Video Service** (`/video/v1`) - [Full API Spec](api-specs/video-service.yaml):
 - `POST /videos/generate` - Generate yearly compilation
 - `GET /videos` - List user videos
 - `GET /videos/{id}` - Get video details
 - `GET /videos/{id}/download` - Download video (pre-signed S3 URL)
-- `GET /videos/{id}/thumbnail` - Get video thumbnail
-- `DELETE /videos/{id}` - Delete video
 
 #### 6.3 - Persistence Model
 
