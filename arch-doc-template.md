@@ -571,6 +571,7 @@ Storage for generated yearly videos.
 
 - **Networking & Entry Points:**
 	- **Amazon Route 53:** DNS management for custom domains with health checks and failover support.
+  - **Amazon CloudFront (CDN):** Serves static assets (frontend builds, images, documents) globally with low latency and integrates with WAF for edge security.
 	- **AWS Application Load Balancer (ALB):** Distributes traffic across microservices, terminates SSL, and integrates with WAF and Cognito.
 	- **AWS WAF (Web Application Firewall):** Protects APIs from common web exploits (SQL injection, XSS, bots, DDoS).
     
@@ -586,12 +587,11 @@ Storage for generated yearly videos.
     - **Relational Database:** PostgreSQL (primary OLTP database, ACID-compliant, strong support for JSON fields).
     - **Caching:** Redis (in-memory cache, session store, rate limiting).
     - **Search:** OpenSearch.
-        
-- **Message Broker:**
-	- TODO: vamos ter message broker?
+
 
 - **API Layer:**
     - REST (JSON-based)
+    - Web Socket
 
 ---
 
@@ -609,6 +609,29 @@ Storage for generated yearly videos.
 	- **Android:** Kotlin / Jetpack Compose.
 	- **Why Native:** Better performance, tighter integration with device hardware (camera, sensors, push notifications), and ability to adopt new platform features more quickly compared to hybrid solutions.
         
+
+---
+
+#### **2. Deployment Pipeline**
+
+- **CI/CD Strategy:**
+  - The project uses a fully automated AWS-native CI/CD pipeline to ensure reliable, repeatable, and fast deployments.
+
+- **AWS CodeCommit:**
+  - Git-based source control repository hosting all application code and infrastructure as code (IaC).
+
+- **AWS CodeBuild:**
+  - Builds and tests container images, runs unit/integration tests, performs security scanning, and pushes images to Amazon ECR.
+
+- **AWS CodePipeline:**
+  - Orchestrates the entire CI/CD flow, triggering builds on commit or pull request merges, and promotes artifacts from dev → staging → production environments.
+
+- **AWS CodeDeploy:**
+  - Deploys updated container images to Amazon EKS using rolling updates or blue/green deployments with zero downtime.
+  - Integrates with ALB target groups for automatic traffic shifting and health checks before finalizing deployment.
+
+
+This pipeline ensures continuous integration, continuous delivery, and fast rollback in case of failures.
 
 ---
 
