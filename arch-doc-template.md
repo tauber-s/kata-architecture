@@ -111,31 +111,6 @@
 
 ### 🧭 5. Trade-offs
 
-List the tradeoffs analysis, comparing pros and cons for each major decision.
-Before you need list all your major decisions, them run tradeoffs on than.
-example:
-Major Decisions: 
-```
-1. One mobile code base - should be (...)
-2. Reusable capability and low latency backends should be (...)
-3. Cache efficiency therefore should do (...)
-```
-Tradeoffs:
-```
-1. React Native vs (Flutter and Native)
-2. Serverless vs Microservices
-3. Redis vs Enbeded Caches
-```
-Each tradeoff line need to be:
-```
-PROS (+) 
-  * Benefit: Explanation that justify why the benefit is true.
-CONS (+)
-  * Problem: Explanation that justify why the problem is true.
-```
-PS: Be careful to not confuse problem with explanation. 
-<BR/>Recommended reading: http://diego-pacheco.blogspot.com/2023/07/tradeoffs.html
-
 1. Kotlin/Spring Boot vs Go
 ```   
 PROS (+)
@@ -282,7 +257,8 @@ No migrations, since this is a brand-new system.
 
 ### 🖹 8. Testing strategy
 
-Explain the techniques, principles, types of tests and will be performaned, and spesific details how to mock data, stress test it, spesific chaos goals and assumptions.
+E2E testing: e2e can be used to ensure application key functionalities work.
+
 
 ### 🖹 9. Observability strategy
 
