@@ -584,12 +584,11 @@ Storage for generated yearly videos.
     - **Relational Database:** PostgreSQL (primary OLTP database, ACID-compliant, strong support for JSON fields).
     - **Caching:** Redis (in-memory cache, session store, rate limiting).
     - **Search:** OpenSearch.
-        
-- **Message Broker:**
-	- TODO: vamos ter message broker?
+
 
 - **API Layer:**
     - REST (JSON-based)
+    - Web Socket
 
 ---
 
