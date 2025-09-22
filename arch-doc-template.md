@@ -52,15 +52,15 @@ must be able to store pocs from multiple users from different countries and it m
 
 ### 3. 🎯 Non-Goals
 ```
-- Lambda 
-- Monoliths
-- Single AZ solutions
-- Mobile: Ionic
-- Single language for mobile
-- it needs to be "native"
+- Serverless Lambda functions
+- Monolithic architectures
+- Single Availability Zone deployments
+- Mobile development with Ionic
+- Using a single language for mobile apps
+- Non-native mobile solutions
 - MongoDB
-- Single relational DB
-- Other clouds that are not AWS
+- Relying on a single relational database
+- Cloud providers other than AWS
 ```
 1. **On-premise deployments:** The system will only be SaaS, no support for local installs.
 2. **Cross-cloud support:** AWS is the mandatory cloud, no support for GCP or Azure.
