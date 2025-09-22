@@ -146,15 +146,31 @@ CONS (-)
   * Runtime footprint: JVM baseline memory/CPU is higher than Go or Rust, increasing container cost for small instances.
   * Startup and image size: Slower startup and larger images vs Go; impacts scale-to-zero and ultra-fast rollouts.
 ```
-2. Client side Android / IOS 
+2. Client side
+Android and IOS </br>
+
 Pros (+)
+  * Better performance
+  * Better access to native features
 
 Cons (-)
+  * Duplicated development
+  * Maintenance cost
+  * Risk of inconsistency between versions
 
-3. Android / IOS 
+WEB (NEXTJS FEBE)
+
 Pros (+)
+* SSR/SSG (server side rendering / generating)
+* Client side does not know API
+* Cache
+* React Components
 
 Cons (-)
+* Monolith Risk
+* Cache complexity
+
+
 
 ### 🌏 6. For each key major component
 
