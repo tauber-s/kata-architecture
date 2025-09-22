@@ -188,52 +188,12 @@ CONS (-)
 
 **Reporting Service** (`/reports/v1`) - [Full API Spec](api-specs/reporting-service.yaml):
 - `GET /reports/usage` - Usage analytics with date range
-- `GET /reports/poc-summary/{pocId}` - PoC summary report
-- `GET /reports/kata-analytics` - Kata session analytics
-- `GET /reports/tenant-overview` - Comprehensive tenant metrics
-- `POST /reports/export` - Export reports (PDF, CSV, XLSX, JSON)
 
 **Video Service** (`/video/v1`) - [Full API Spec](api-specs/video-service.yaml):
 - `POST /videos/generate` - Generate yearly compilation
 - `GET /videos` - List user videos
 - `GET /videos/{id}` - Get video details
 - `GET /videos/{id}/download` - Download video (pre-signed S3 URL)
-- `GET /videos/{id}/thumbnail` - Get video thumbnail
-- `DELETE /videos/{id}` - Delete video
-
-## Video Service
-
-1. Generate Yearly Video
-    ```http
-    POST /videos/generate/
-    Request: {}
-    Response:
-    {
-      "id": "uuid",
-      "user_id": "uuid",
-      "status": "processing|ready|unavailable",
-      "url": "string|null"
-    }
-    ```
-
-2. List User Videos
-    ```http
-    GET /videos/
-    Response:
-    {
-      "id": "uuid",
-      "user_id": "uuid",
-      "year": 2025,
-      "url": "string",
-      "created_at": "..."
-    }
-    ```
-
-3. Download Video
-    ```http
-    GET /videos/{id}/download
-    Response: 302 Redirect to S3 pre-signed URL
-    ```
 
 #### 6.3 - Persistence Model
 
@@ -316,7 +276,7 @@ To ensure efficient queries under our multi-tenant design, we will use the follo
 
 ### 🖹 7. Migrations
 
-IF Migrations are required describe the migrations strategy with proper diagrams, text and tradeoffs.
+No migrations, since this is a brand-new system.
 
 ### 🖹 8. Testing strategy
 
@@ -324,11 +284,276 @@ Explain the techniques, principles, types of tests and will be performaned, and 
 
 ### 🖹 9. Observability strategy
 
-Explain the techniques, principles,types of observability that will be used, key metrics, what would be logged and how to design proper dashboards and alerts.
+The observability strategy for the platform is designed to ensure **end-to-end visibility**, **early failure detection**, and **continuous security monitoring**.
+
+#### 9.1 Techniques and Principles
+
+We follow the principle of **Observability by Design**, with automatic collection of:
+
+- **Metrics** (CloudWatch and Prometheus-compatible exporters): covering both infrastructure and application-level KPIs.
+- **Structured logs**: including `tenant_id`, `user_id`, `request_id`, and `service`.
+- **Distributed tracing**: enabled by AWS X-Ray across all microservices.
+- **Threat detection**: using AWS GuardDuty and continuous audit logs via CloudTrail.
+- **Dashboards and alerts as code**: managed via CloudFormation or CDK and version-controlled.
+
+#### 9.2 Types of Observability
+
+| Type           | Tools / Focus                                      |
+|----------------|----------------------------------------------------|
+| **Metrics**    | CloudWatch + Prometheus (Kubernetes, App metrics)  |
+| **Logs**       | CloudWatch Logs + OpenSearch                       |
+| **Tracing**    | AWS X-Ray (end-to-end distributed tracing)         |
+| **Audit**      | AWS CloudTrail                                     |
+| **Security**   | AWS GuardDuty                                      |
+
+#### 9.3 Key Metrics
+
+We track both **infrastructure performance** and **application behavior**.
+
+##### Infrastructure (via CloudWatch):
+
+- CPU and memory usage per pod (via Container Insights)
+- Network traffic per service
+- Pod restarts and health checks
+- Redis (ElastiCache) latency, throughput, command rate
+
+##### Application:
+
+- Request latency and error rate per endpoint
+- PoC creation and Kata session throughput
+- Active dojo sessions (count, average duration)
+- Active users per tenant
+- Report generation performance
+
+##### Security:
+
+- Failed login attempts per IP
+- Suspicious behavior and access patterns (GuardDuty)
+- Audit trail for sensitive operations (CloudTrail)
+
+#### 9.4 Logging Strategy
+
+All services log in **structured JSON format**, with the following standard fields:
+
+```json
+{
+  "timestamp": "2025-09-21T12:00:00Z",
+  "level": "INFO",
+  "tenant_id": "abc-123",
+  "user_id": "user-456",
+  "request_id": "req-789",
+  "service": "kata-service",
+  "message": "User joined kata room",
+  "status_code": 200
+}
+```
+Logs are sent to **CloudWatch Logs**.
+
+Critical logs are mirrored to **Amazon OpenSearch** for advanced search and dashboarding.
+
+---
+
+#### 9.5 Tracing (AWS X-Ray)
+
+Distributed tracing is enabled across all service-to-service communication and asynchronous flows.
+
+- `request_id` and `trace_id` are propagated by default.
+- Enables identification of bottlenecks, slow API calls, and high-latency services.
+
+---
+
+#### 9.6 Dashboard Design
+
+Dashboards are implemented in **CloudWatch Dashboards** (optionally **Grafana** via OpenSearch), and include:
+
+- **Platform overview**: total requests, average latency, error rate
+- **Tenant dashboards**: per-tenant usage, active users, ongoing sessions
+- **Service-level dashboards**: custom metrics per microservice
+- **Real-time monitoring**: active dojo sessions, rooms, participants
+- **Video processing**: job statuses (pending, processing, failed, completed)
+
+All dashboards are defined as code and version-controlled through the CI/CD pipeline.
+
+---
+
+#### 9.7 Alerting Strategy
+
+All critical alarms are defined using **CloudWatch Alarms** and delivered via **SNS** (email, Slack, etc.).
+
+Alerts are based on **SLO-driven thresholds**, such as:
+
+- HTTP error rate > 5% over 5 minutes
+- API latency > 2 seconds on key endpoints
+- Multiple failed login attempts within a short window
+- Video generation job failures
+- Spike in pod restarts in the EKS cluster
+
+Alerts are always tested in staging before being promoted to production.
+
+---
+
+#### Observability Stack
+
+| Tool           | Role                                             |
+|----------------|--------------------------------------------------|
+| **CloudWatch** | Metrics, logs, dashboards, alarms                |
+| **AWS X-Ray**  | Distributed tracing across microservices         |
+| **GuardDuty**  | Real-time threat detection                       |
+| **CloudTrail** | Security auditing and AWS API usage tracking     |
+| **OpenSearch** | Log indexing, advanced search, custom dashboards |
+
 
 ### 🖹 10. Data Store Designs
 
-For each different kind of data store i.e (Postgres, Memcached, Elasticache, S3, Neo4J etc...) describe the schemas, what would be stored there and why, main queries, expectations on performance. Diagrams are welcome but you really need some dictionaries.
+#### 10.1 Aurora (PostgreSQL)
+
+**Purpose:**
+Stores all transactional data (users, PoCs, katas, reports, metadata for videos).
+
+**Schemas and Tables:**
+
+##### `users`
+
+| Column      | Type      | Definition        |
+|-------------|-----------|-------------------|
+| id          | UUID (PK) | Unique user ID    |
+| cognito_sub | UUID (PK) | Cognito user ID   |
+| name        | TEXT      | Display name      |
+| email       | TEXT      | Unique, indexed   |
+| created\_at | TIMESTAMP | Registration date |
+| tenant\_id  | UUID      | Related Tenant    |
+
+##### `pocs`
+
+| Column      | Type      | Definition          |
+|-------------|-----------|---------------------|
+| id          | UUID (PK) | Unique PoC ID       |
+| user\_id    | UUID (FK) | Owner               |
+| title       | TEXT      | Title of the PoC    |
+| description | TEXT      | Long description    |
+| repo_url    | TEXT      | Git repository      |
+| tags        | TEXT\[]   | Tags for the PoC    |
+| languages   | TEXT\[]   | Code languages used |
+| created\_at | TIMESTAMP | Creation date       |
+| tenant\_id  | UUID      | Related Tenant      |
+
+##### `katas`
+
+| Column      | Type      | Definition                                    |
+|-------------|-----------|-----------------------------------------------|
+| id          | UUID (PK) | Kata instance                                 |
+| user\_id    | UUID (FK) | Creator                                       |
+| started\_at | TIMESTAMP | When kata started                             |
+| ended\_at   | TIMESTAMP | When kata ended                               |
+| status      | TEXT      | (`scheduled`, `active`, `failed`, `finished`) |
+| tenant\_id  | UUID      | Related Tenant                                |
+
+##### `rooms`
+
+| Column     | Type      | Definition                       |
+|------------|-----------|----------------------------------|
+| id         | UUID (PK) | Room ID                          |
+| kata\_id   | UUID (FK) | Related kata                     |
+| name       | TEXT      | Info about challenge             |
+| status     | TEXT      | (`active`, `failed`, `finished`) |
+| sensei_id  | UUID (FK) | User assigned as sensei          |
+| tenant\_id | UUID      | Related Tenant                   |
+
+##### `room_participants`
+
+| Column     | Type      | Definition                       |
+|------------|-----------|----------------------------------|
+| room\_id   | UUID (PK) | Room ID                          |
+| user\_id   | UUID (FK) | Participant ID                   |
+| joined\_at | TIMESTAMP | When participant joined the room |
+| left\_at   | TIMESTAMP | When participant left the room   |
+| tenant\_id | UUID      | Related Tenant                   |
+
+##### `videos`
+
+| Column      | Type      | Definition                                   |
+|-------------|-----------|----------------------------------------------|
+| id          | UUID (PK) | Video ID                                     |
+| user\_id    | UUID (FK) | Owner                                        |
+| year        | INT       | Year of generation                           |
+| status      | TEXT      | (`pending`, `processing`, `ready`, `failed`) |
+| s3\_path    | TEXT      | Pointer to S3 object                         |
+| created\_at | TIMESTAMP | Request time                                 |
+| tenant\_id  | UUID      | Related Tenant                               |
+
+**Performance Expectations:**
+
+* PoCs search optimized with indexes on tags/languages.
+* Katas and rooms expected to be small (<10k rows/day).
+* Reports handled by window functions + indexes.
+
+---
+
+#### 10.2 OpenSearch
+
+**Purpose:**
+Full-text search for PoCs and kata descriptions.
+
+**Indices:**
+
+* `pocs_index`
+
+    * `id` (keyword)
+    * `title` (text, analyzed)
+    * `description` (text, analyzed)
+    * `tags` (keyword array)
+    * `languages` (keyword array)
+
+**Main Queries:**
+
+* `match` on description/title.
+* `filter` by tags and languages.
+
+**Performance Expectations:**
+
+* < 1s response time for queries on < 1M PoCs.
+* Updated asynchronously from Postgres via change feed.
+
+---
+
+#### 10.3 S3 storage
+
+**Purpose:**
+Storage for generated yearly videos.
+
+**Buckets & Objects:**
+
+* `{tenantId}/videos/{userId}/{year}/{videoId}.mp4`
+
+**Metadata stored in Postgres `videos` table.**
+
+**Performance Expectations:**
+
+* Acceptable download latency by S3.
+
+#### 10.4 Redis
+
+**Purpose:**
+
+* Caching hot queries.
+* Kata rooms ephemeral states (fast join/leave tracking).
+
+**Data Structures:**
+
+`room:{roomId}:participants`: Set of userIds
+- Add user when they join
+- Remove when they leave
+- Fast membership check
+
+`room:{roomId}:roles`: Hash
+- Controls who is pilot and copilot.
+- `pilot`: userId
+- `copilot`: userId
+
+**Performance Expectations:**
+
+* O(1) joins/leaves.
+* Expire room keys after kata ends.
 
 ### 🖹 11. Technology Stack
 #### **1. General Architecture**
